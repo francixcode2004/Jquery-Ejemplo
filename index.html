@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Todo List Jquery</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <style>
+      #lista {
+        list-style: none;
+        padding: 0;
+      }
+      #lista li {
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+      }
+      .edit-btn,
+      .delete-btn {
+        border: none;
+        background: none;
+        cursor: pointer;
+        margin-left: 5px;
+      }
+      .edit-btn img,
+      .delete-btn img {
+        width: 24px;
+        height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ingrese Una Tarea</h1>
+    <input id="lbl_tarea" type="text" placeholder="Tarea 1" />
+    <button id="Agg_tarea" type="button">Añadir</button>
+
+    <h1>Tareas Pendientes</h1>
+
+    <div id="lista"></div>
+
+    <script>
+      $(document).ready(function () {
+        // Cargar tareas desde localStorage
+        var tareas = JSON.parse(localStorage.getItem("tareas")) || [];
+
+        function cargarTareas() {
+          $("#lista").empty();
+          tareas.forEach(function (tarea) {
+            $("#lista").append(`
+                        <li>
+                            ${tarea}
+                            <button class="edit-btn"><img src="editar.png" alt="Editar" /></button>
+                            <button class="delete-btn"><img src="cheque.png" alt="Eliminar" /></button>
+                        </li>
+                    `);
+          });
+        }
+
+        function guardarTareas() {
+          localStorage.setItem("tareas", JSON.stringify(tareas));
+        }
+
+        function agregarTarea() {
+          var tarea = $("#lbl_tarea").val().trim();
+
+          if (tarea) {
+            if (tareas.includes(tarea)) {
+              alert("La tarea ya existe. ¿Desea modificarla?");
+              return;
+            }
+
+            $("#lista").append(`
+                        <li>
+                            ${tarea}
+                            <button class="edit-btn"><img src="editar.png" alt="Editar" /></button>
+                            <button class="delete-btn"><img src="cheque.png" alt="Eliminar" /></button>
+                        </li>
+                    `);
+            tareas.push(tarea);
+            guardarTareas();
+            $("#lbl_tarea").val("");
+          } else {
+            alert("Ingrese una tarea");
+          }
+        }
+
+        // Manejar clic en el botón de agregar
+        $("#Agg_tarea").on("click", function (event) {
+          event.preventDefault();
+          agregarTarea();
+        });
+
+        // Manejar presionar Enter en el campo de entrada
+        $("#lbl_tarea").on("keypress", function (event) {
+          if (event.which === 13) {
+            // Código de tecla Enter es 13
+            event.preventDefault();
+            agregarTarea();
+          }
+        });
+
+        // Manejar clic en el botón de eliminar
+        $("#lista").on("click", ".delete-btn", function () {
+          var $li = $(this).closest("li");
+          var tarea = $li.contents().first().text().trim(); // Obtiene el texto de la tarea
+          if (confirm("¿Está seguro de que desea eliminar esta tarea?")) {
+            $li.remove();
+            tareas = tareas.filter((t) => t !== tarea); // Elimina la tarea del array
+            guardarTareas(); // Guarda las tareas actualizadas en localStorage
+          }
+        });
+
+        // Manejar clic en el botón de editar
+        $("#lista").on("click", ".edit-btn", function () {
+          var $li = $(this).closest("li");
+          var tarea = $li.contents().first().text().trim(); // Obtiene el texto de la tarea
+          var nuevaTarea = prompt("Modifique la tarea:", tarea);
+          if (nuevaTarea && nuevaTarea.trim()) {
+            $li.html(`
+                        ${nuevaTarea}
+                        <button class="edit-btn"><img src="editar.png" alt="Editar" /></button>
+                        <button class="delete-btn"><img src="cheque.png" alt="Eliminar" /></button>
+                    `);
+            tareas = tareas.map((t) => (t === tarea ? nuevaTarea : t)); // Actualiza la tarea en el array
+            guardarTareas(); // Guarda las tareas actualizadas en localStorage
+          }
+        });
+
+        // Cargar las tareas cuando la página se carga
+        cargarTareas();
+      });
+    </script>
+  </body>
+</html>
